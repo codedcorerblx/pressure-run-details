@@ -11,14 +11,13 @@
       &n=<integer values, base36, dot separated>&reader=true
    The URL stays clean during normal use; params only appear after
    "Copy Permalink" or when opening a shared link, and any later
-   change clears them again. Data is fetched with cache: "no-store".
+   change clears them again. Data, CSS and JS are always fetched fresh (no-store / cache-busted).
    ============================================================ */
 (function () {
   "use strict";
 
   var DATA_DIR = "data/";
   var SELECTION_KEY_PREFIX = "prd_selection::";
-  var LAST_VERSION_KEY = "prd_last_version";
   var THEME_KEY = "prd_theme";
 
   var versionsManifest = { default: "", versions: [] };
@@ -34,6 +33,8 @@
   var state = { v: [], n: [], d: [] }; // option index per field / int per field / option index per drop
   var els = {};
   var defaultMeta = {};
+  var dataSig = "";
+  function sig(s) { var h = 5381; for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); }
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -108,8 +109,6 @@
     var cf = new URLSearchParams(location.search).get("cf");
     var s = cf && migrate(cf);
     if (s && versionExists(s)) return s;
-    s = lsGet(LAST_VERSION_KEY);
-    if (s && versionExists(migrate(s))) return migrate(s);
     return versionsManifest.default;
   }
   function populateThemes() {
@@ -133,9 +132,9 @@
   function switchVersion(slug, fromURL) {
     var dir = DATA_DIR + encodeURIComponent(slug) + "/";
     return Promise.all([fetchJSON(dir + "fields.json"), fetchJSON(dir + "dead-drops.json")]).then(function (r) {
+      dataSig = sig(JSON.stringify(r));
       currentVersion = slug;
       els["version-select"].value = slug;
-      lsSet(LAST_VERSION_KEY, slug);
       var id = 0;
       fields = r[0].map(function (f) { f.base = id; id += f.options.length; return f; });
       dd = r[1];
@@ -179,6 +178,7 @@
       var raw = lsGet(SELECTION_KEY_PREFIX + slug);
       if (raw) {
         var s = JSON.parse(raw);
+        if (s.s !== dataSig) throw new Error("stale");
         applyIds(s.b || []);
         (s.n || []).forEach(function (x, i) { if (i < state.n.length && x > 0) state.n[i] = x; });
       }
@@ -216,7 +216,7 @@
     return out;
   }
   function persist() {
-    lsSet(SELECTION_KEY_PREFIX + currentVersion, JSON.stringify({ b: chosenIds(), n: state.n }));
+    lsSet(SELECTION_KEY_PREFIX + currentVersion, JSON.stringify({ b: chosenIds(), n: state.n, s: dataSig }));
   }
 
   /* ---------- UI build ---------- */
