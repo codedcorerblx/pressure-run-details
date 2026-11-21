@@ -1072,6 +1072,35 @@ body.is-reader-mode .summary-panel {
   text-transform: uppercase;
   color: var(--red-glow);
 }
-body.is-reader-mode .prd-panel { display: none !important; }
+/* Read-only view mirrors the editable layout: same cards, controls locked */
+@media (min-width: 861px) {
+  body.is-reader-mode .layout {
+    grid-template-columns: 1.6fr 1fr;
+    max-width: 1240px;
+  }
+  body.is-reader-mode .summary-panel { position: sticky; }
+}
+body.is-reader-mode .prd-cell select,
+body.is-reader-mode .prd-cell input {
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none;
+  opacity: 1;
+  color: var(--text);
+  border-color: var(--line-soft);
+}
+body.is-reader-mode .prd-cell select:disabled { opacity: 1; }
 .prd-cell-stack { display: flex; flex-direction: column; gap: 6px; }
 .prd-qty { max-width: 90px; }
+
+/* PRD summary: show every row, name left / value right */
+.summary-list { max-height: none; overflow: visible; }
+.summary-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 18px;
+}
+.summary-item-how { text-align: right; }

@@ -347,6 +347,11 @@
       if (!typing) inp.value = state.n[i];
     });
     refreshDrops();
+    if (readerMode) {
+      var lock = document.querySelectorAll(".prd-cell select, .prd-cell input");
+      for (var k = 0; k < lock.length; k++) { lock[k].disabled = true; lock[k].tabIndex = -1; }
+      state.d.forEach(function (s, i) { dropEls[i].status.hidden = !s.item; });
+    }
     els["field-count"].textContent = (fields.length + dd.slots + 1) + " fields";
     els["selected-count"].textContent = currentVersion.replace("_", ".");
     var box = els["summary-list"];
