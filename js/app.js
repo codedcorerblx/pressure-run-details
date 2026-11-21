@@ -451,6 +451,7 @@
     els["reset-btn"].addEventListener("click", function () {
       blank(); persist(); clearURLParams(); buildGrid(); render(); toast("Reset");
     });
+    $("export-btn").addEventListener("click", exportPNG);
     els["mobile-settings-btn"].addEventListener("click", openSettingsModal);
     els["copy-list-btn"].addEventListener("click", function () {
       copyText(copyListFormat === "long" ? buildLong() : buildShort(), "List copied");
@@ -469,6 +470,108 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
   }
 
+  /* ---------- PNG export (landscape card sheet, drawn on a canvas) ---------- */
+  function exportPNG() {
+    var ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    ready.then(drawPNG);
+  }
+  function drawPNG() {
+    var cs = getComputedStyle(document.documentElement);
+    function C(n, f) { return (cs.getPropertyValue(n) || "").trim() || f; }
+    var bg = C("--bg", "#0a0a0c"), alt = C("--panel-alt", "#1a1a20"), line = C("--line", "#2a2a32"),
+        red = C("--red", "#e03a52"), text = C("--text", "#eeeeee"), muted = C("--muted", "#8a8a94");
+    var font = getComputedStyle(document.body).fontFamily;
+    var all = rows();
+    var run = all.slice(0, fields.length), drop = all.slice(fields.length);
+    var W = 1600, pad = 48, gap = 16, cols = 4, cardH = 104, headH = 96, secH = 46, foot = 52;
+    var cardW = (W - pad * 2 - gap * (cols - 1)) / cols;
+    function rowsFor(n) { return Math.ceil(n / cols); }
+    var H = pad + headH + secH + rowsFor(run.length) * (cardH + gap) + secH +
+            rowsFor(drop.length) * (cardH + gap) + foot;
+    var S = 2, cv = document.createElement("canvas");
+    cv.width = W * S; cv.height = H * S;
+    var x = cv.getContext("2d");
+    x.scale(S, S);
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    x.textBaseline = "alphabetic";
+
+    function fit(str, maxW, size, weight) {
+      var s = size;
+      x.font = weight + " " + s + "px " + font;
+      while (x.measureText(str).width > maxW && s > 16) { s -= 1; x.font = weight + " " + s + "px " + font; }
+      if (x.measureText(str).width > maxW) {
+        while (str.length > 3 && x.measureText(str + "…").width > maxW) str = str.slice(0, -1);
+        str += "…";
+      }
+      return str;
+    }
+    // header
+    x.fillStyle = red; x.font = "700 34px " + font; x.fillText("\u25C6", pad, pad + 40);
+    x.fillStyle = text; x.font = "600 34px " + font;
+    if ("letterSpacing" in x) x.letterSpacing = "3px";
+    x.fillText("PRESSURE", pad + 46, pad + 40);
+    var w1 = x.measureText("PRESSURE").width;
+    x.fillStyle = red; x.fillText("//", pad + 46 + w1 + 12, pad + 40);
+    var w2 = x.measureText("//").width;
+    x.fillStyle = text; x.fillText("RUN DETAILS", pad + 46 + w1 + w2 + 24, pad + 40);
+    if ("letterSpacing" in x) x.letterSpacing = "1px";
+    x.fillStyle = muted; x.font = "500 18px " + font; x.textAlign = "right";
+    x.fillText(currentVersion.replace("_", "."), W - pad, pad + 38);
+    x.textAlign = "left";
+    x.fillStyle = line; x.fillRect(pad, pad + headH - 22, W - pad * 2, 1);
+
+    var y = pad + headH;
+    function section(title, items) {
+      x.fillStyle = red; x.font = "600 18px " + font; x.fillText(title, pad, y + 28);
+      y += secH;
+      items.forEach(function (it, i) {
+        var col = i % cols, r = Math.floor(i / cols);
+        var cx = pad + col * (cardW + gap), cy = y + r * (cardH + gap);
+        var w = cardW;
+        if (i === items.length - 1 && col === 0 && items.length % cols === 1) w = W - pad * 2; // odd last card spans the row
+        x.fillStyle = alt; x.fillRect(cx, cy, w, cardH);
+        x.strokeStyle = line; x.lineWidth = 1; x.strokeRect(cx + 0.5, cy + 0.5, w - 1, cardH - 1);
+        x.fillStyle = red; x.fillRect(cx, cy, 4, cardH);
+        x.fillStyle = muted; x.font = "500 15px " + font;
+        x.fillText(fit(it[0].toUpperCase(), w - 44, 15, 500), cx + 24, cy + 32);
+        var main = it[1], tag = "", m = /^(.*) \((Recommended|Optional|Required)\)$/.exec(it[1]);
+        if (m) { main = m[1]; tag = m[2].toUpperCase(); }
+        if (tag) {
+          x.fillStyle = red; x.font = "600 15px " + font; x.textAlign = "right";
+          x.fillText(tag, cx + w - 24, cy + 32);
+          x.textAlign = "left";
+        }
+        if ("letterSpacing" in x) x.letterSpacing = "0px";
+        x.fillStyle = text;
+        x.fillText(fit(main, w - 44, 28, 700), cx + 24, cy + 76);
+        if ("letterSpacing" in x) x.letterSpacing = "1px";
+      });
+      y += rowsFor(items.length) * (cardH + gap);
+    }
+    section("// RUN DETAILS", run);
+    section("// DEAD-DROP", drop);
+    x.fillStyle = muted; x.font = "500 14px " + font;
+    x.fillText("Pressure Run Details", pad, H - 24);
+
+    var url = cv.toDataURL("image/png");
+    els["app-modal-title"].textContent = "Export PNG";
+    els["app-modal-body"].innerHTML = "";
+    var img = document.createElement("img");
+    img.src = url; img.alt = "Pressure Run Details";
+    img.style.cssText = "width:100%;height:auto;display:block;border:1px solid var(--line)";
+    els["app-modal-body"].appendChild(img);
+    els["app-modal-actions"].innerHTML = "";
+    var dl = document.createElement("a");
+    dl.className = "btn btn-ghost"; dl.href = url; dl.download = "pressure-run-details.png";
+    dl.textContent = "Download PNG";
+    var done = document.createElement("button");
+    done.type = "button"; done.className = "btn btn-ghost"; done.textContent = "Close";
+    done.addEventListener("click", closeModal);
+    els["app-modal-actions"].appendChild(dl); els["app-modal-actions"].appendChild(done);
+    document.querySelector(".modal").classList.add("modal-wide");
+    els["app-modal-backdrop"].hidden = false;
+  }
+
   /* ---------- modal (mobile settings) ---------- */
   function openSettingsModal() {
     els["app-modal-title"].textContent = "Settings";
@@ -485,6 +588,7 @@
       els["settings-anchor"].insertAdjacentElement("afterend", els["masthead-settings-group"]);
     }
     els["app-modal-backdrop"].hidden = true;
+    document.querySelector(".modal").classList.remove("modal-wide");
   }
 
   var toastTimer = null;

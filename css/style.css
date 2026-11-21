@@ -1104,3 +1104,5 @@ body.is-reader-mode .prd-cell select:disabled { opacity: 1; }
   padding: 9px 18px;
 }
 .summary-item-how { text-align: right; }
+
+.modal.modal-wide { max-width: min(94vw, 1100px); width: 100%; }
