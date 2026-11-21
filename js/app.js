@@ -30,7 +30,7 @@
   var copyListFormat = "short";
 
   var fields = [];      // [{key,label,options,integer,base}]
-  var drops = [];       // [{label,options,base}]
+  var dd = { items: [], statuses: [], slots: 3, batMax: 3, I: 0, Q: 1, S: 0, per: 0, base: 0, batBase: 0 };
   var state = { v: [], n: [], d: [] }; // option index per field / int per field / option index per drop
   var els = {};
   var defaultMeta = {};
@@ -138,7 +138,14 @@
       lsSet(LAST_VERSION_KEY, slug);
       var id = 0;
       fields = r[0].map(function (f) { f.base = id; id += f.options.length; return f; });
-      drops = r[1].map(function (d) { d.selects.forEach(function (s) { s.base = id; id += s.options.length; }); return d; });
+      dd = r[1];
+      dd.batMax = dd.batteries;
+      dd.I = dd.items.length + 1;
+      dd.Q = Math.max.apply(null, dd.items.map(function (x) { return x.max; }));
+      dd.S = dd.statuses.length;
+      dd.per = dd.I + dd.Q + dd.S;
+      dd.base = id; id += dd.per * dd.slots;
+      dd.batBase = id; id += dd.batMax + 1;
       hydrate(slug, fromURL);
       buildGrid();
       render();
@@ -149,8 +156,10 @@
     state = {
       v: fields.map(function () { return 0; }),
       n: fields.map(function () { return 1; }),
-      d: drops.map(function (d) { return d.selects.map(function () { return 0; }); })
+      d: [],
+      bat: 0
     };
+    for (var s = 0; s < dd.slots; s++) state.d.push({ item: 0, qty: 1, status: 0 });
   }
 
   function hydrate(slug, fromURL) {
@@ -177,21 +186,34 @@
   }
 
   // chosen option ids -> per-dropdown indices (first id found inside each dropdown's range)
-  function applyIds(ids) {
-    function pick(g) {
-      for (var i = 0; i < ids.length; i++) {
-        if (ids[i] >= g.base && ids[i] < g.base + g.options.length) return ids[i] - g.base;
-      }
-      return 0;
+  function pick(ids, base, count) {
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] >= base && ids[i] < base + count) return ids[i] - base;
     }
-    fields.forEach(function (f, i) { state.v[i] = pick(f); });
-    drops.forEach(function (d, i) { d.selects.forEach(function (s, k) { state.d[i][k] = pick(s); }); });
+    return 0;
+  }
+  function applyIds(ids) {
+    fields.forEach(function (f, i) { state.v[i] = pick(ids, f.base, f.options.length); });
+    var used = {};
+    for (var i = 0; i < dd.slots; i++) {
+      var b = dd.base + i * dd.per;
+      var it = pick(ids, b, dd.I);
+      if (it && used[it]) it = 0;          // same item can't be taken twice
+      if (it) used[it] = 1;
+      var max = it ? dd.items[it - 1].max : 1;
+      var q = Math.min(pick(ids, b + dd.I, dd.Q) + 1, max);
+      state.d[i] = { item: it, qty: q, status: pick(ids, b + dd.I + dd.Q, dd.S) };
+    }
+    state.bat = pick(ids, dd.batBase, dd.batMax + 1);
   }
   function chosenIds() {
-    return fields.map(function (f, i) { return f.base + state.v[i]; })
-      .concat([].concat.apply([], drops.map(function (d, i) {
-        return d.selects.map(function (s, k) { return s.base + state.d[i][k]; });
-      })));
+    var out = fields.map(function (f, i) { return f.base + state.v[i]; });
+    state.d.forEach(function (s, i) {
+      var b = dd.base + i * dd.per;
+      out.push(b + s.item, b + dd.I + (s.qty - 1), b + dd.I + dd.Q + s.status);
+    });
+    out.push(dd.batBase + state.bat);
+    return out;
   }
   function persist() {
     lsSet(SELECTION_KEY_PREFIX + currentVersion, JSON.stringify({ b: chosenIds(), n: state.n }));
@@ -242,18 +264,60 @@
       els["prd-grid"].appendChild(makeCell(f.label, row));
     });
     dropEls = [];
-    drops.forEach(function (d, i) {
+    state.d.forEach(function (s, i) {
+      var item = document.createElement("select");
+      item.className = "version-select";
+      item.setAttribute("aria-label", "Dead-Drop " + (i + 1) + " item");
+      item.addEventListener("change", function () {
+        s.item = parseInt(item.value, 10);
+        s.qty = 1;
+        changed();
+      });
+      var qty = document.createElement("select");
+      qty.className = "version-select prd-qty";
+      qty.setAttribute("aria-label", "Dead-Drop " + (i + 1) + " amount");
+      qty.addEventListener("change", function () { s.qty = parseInt(qty.value, 10); changed(); });
+      var status = makeSelect(dd.statuses, s.status, function (v) { s.status = v; changed(); }, "Dead-Drop " + (i + 1) + " status");
+      var row = document.createElement("div");
+      row.className = "prd-cell-row";
+      row.appendChild(qty); row.appendChild(status);
       var wrap = document.createElement("div");
       wrap.className = "prd-cell-stack";
-      dropEls[i] = [];
-      d.selects.forEach(function (s, k) {
-        var sel = makeSelect(s.options, state.d[i][k], function (v) {
-          state.d[i][k] = v; changed();
-        }, d.label + " " + s.label);
-        dropEls[i][k] = sel;
-        wrap.appendChild(sel);
-      });
-      els["drop-grid"].appendChild(makeCell(d.label, wrap));
+      wrap.appendChild(item); wrap.appendChild(row);
+      dropEls[i] = { item: item, qty: qty, status: status };
+      els["drop-grid"].appendChild(makeCell("Dead-Drop " + (i + 1), wrap));
+    });
+    var bo = [];
+    for (var n = 0; n <= dd.batMax; n++) bo.push(String(n));
+    els["drop-grid"].appendChild(makeCell("Batteries (0–" + dd.batMax + ")",
+      makeSelect(bo, state.bat, function (v) { state.bat = v; changed(); }, "Batteries")));
+  }
+
+  function fill(sel, pairs, value) {
+    sel.innerHTML = "";
+    pairs.forEach(function (p) {
+      var o = document.createElement("option");
+      o.value = p[0]; o.textContent = p[1];
+      sel.appendChild(o);
+    });
+    sel.value = String(value);
+  }
+  // Shared item list: an item already taken by another dead-drop is hidden here.
+  function refreshDrops() {
+    state.d.forEach(function (s, i) {
+      var takenElsewhere = {};
+      state.d.forEach(function (o, k) { if (k !== i && o.item) takenElsewhere[o.item] = 1; });
+      var pairs = [[0, "None"]];
+      dd.items.forEach(function (it, k) { if (!takenElsewhere[k + 1]) pairs.push([k + 1, it.name]); });
+      var e = dropEls[i];
+      fill(e.item, pairs, s.item);
+      var max = s.item ? dd.items[s.item - 1].max : 1;
+      s.qty = Math.min(s.qty, max);
+      var qp = [];
+      for (var q = 1; q <= max; q++) qp.push([q, "x" + q]);
+      fill(e.qty, qp, s.qty);
+      e.qty.hidden = max < 2;                 // single-copy items show no amount dropdown
+      e.status.disabled = !s.item;
     });
   }
 
@@ -261,11 +325,13 @@
   function valueOf(i) { return isInt(i) ? String(state.n[i]) : fields[i].options[state.v[i]]; }
   function rows() {
     return fields.map(function (f, i) { return [f.label, valueOf(i)]; })
-      .concat(drops.map(function (d, i) {
-        var s = d.selects.map(function (x, k) { return x.options[state.d[i][k]]; });
-        if (d.selects.length === 1) return [d.label, s[0]];
-        return ["Dead-Drop: " + d.label, s[0] === "None" ? "None" : s[0] + " (" + s[1] + ")"];
-      }));
+      .concat(state.d.map(function (s, i) {
+        if (!s.item) return ["Dead-Drop " + (i + 1), "None"];
+        var it = dd.items[s.item - 1];
+        return ["Dead-Drop " + (i + 1),
+          it.name + (it.max > 1 ? " x" + s.qty : "") + " (" + dd.statuses[s.status] + ")"];
+      }))
+      .concat([["Batteries", String(state.bat)]]);
   }
 
   function changed(typing) {
@@ -280,12 +346,8 @@
       inp.hidden = !isInt(i);
       if (!typing) inp.value = state.n[i];
     });
-    drops.forEach(function (d, i) {
-      if (d.selects.length === 2 && dropEls[i]) {
-        dropEls[i][1].disabled = d.selects[0].options[state.d[i][0]] === "None";
-      }
-    });
-    els["field-count"].textContent = (fields.length + drops.length) + " fields";
+    refreshDrops();
+    els["field-count"].textContent = (fields.length + dd.slots + 1) + " fields";
     els["selected-count"].textContent = currentVersion.replace("_", ".");
     var box = els["summary-list"];
     box.innerHTML = "";

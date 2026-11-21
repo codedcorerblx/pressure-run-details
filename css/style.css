@@ -1074,3 +1074,4 @@ body.is-reader-mode .summary-panel {
 }
 body.is-reader-mode .prd-panel { display: none !important; }
 .prd-cell-stack { display: flex; flex-direction: column; gap: 6px; }
+.prd-qty { max-width: 90px; }

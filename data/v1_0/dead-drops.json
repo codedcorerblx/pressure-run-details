@@ -1,82 +1,71 @@
-[
+{
+ "slots": 3,
+ "statuses": [
+  "Recommended",
+  "Optional",
+  "Required"
+ ],
+ "batteries": 3,
+ "items": [
   {
-    "label": "Dead-Drop 1",
-    "selects": [
-      {
-        "label": "Item",
-        "options": [
-          "None",
-          "Example1",
-          "Example2",
-          "Example3"
-        ]
-      },
-      {
-        "label": "Status",
-        "options": [
-          "Recommended",
-          "Optional",
-          "Required"
-        ]
-      }
-    ]
+   "name": "Flashlight",
+   "max": 1
   },
   {
-    "label": "Dead-Drop 2",
-    "selects": [
-      {
-        "label": "Item",
-        "options": [
-          "None",
-          "Example1",
-          "Example2",
-          "Example3"
-        ]
-      },
-      {
-        "label": "Status",
-        "options": [
-          "Recommended",
-          "Optional",
-          "Required"
-        ]
-      }
-    ]
+   "name": "Lantern",
+   "max": 1
   },
   {
-    "label": "Dead-Drop 3",
-    "selects": [
-      {
-        "label": "Item",
-        "options": [
-          "None",
-          "Example1",
-          "Example2",
-          "Example3"
-        ]
-      },
-      {
-        "label": "Status",
-        "options": [
-          "Recommended",
-          "Optional",
-          "Required"
-        ]
-      }
-    ]
+   "name": "Flash Beacon",
+   "max": 1
   },
   {
-    "label": "Batteries",
-    "selects": [
-      {
-        "label": "Amount (0–3)",
-        "options": [
-          "0",
-          "1",
-          "2",
-          "3"
-        ]
-      }
-    ]
+   "name": "Code Breacher",
+   "max": 3
+  },
+  {
+   "name": "Beacon Gun",
+   "max": 1
+  },
+  {
+   "name": "SPR-INT",
+   "max": 5
+  },
+  {
+   "name": "Medkit",
+   "max": 2
+  },
+  {
+   "name": "Cocktail 'Perithesene'",
+   "max": 1
+  },
+  {
+   "name": "Defibrillator",
+   "max": 1
+  },
+  {
+   "name": "Hand-Cranked Flashlight",
+   "max": 1
+  },
+  {
+   "name": "Sebastian Scanner",
+   "max": 1
+  },
+  {
+   "name": "Blacklight",
+   "max": 1
+  },
+  {
+   "name": "Toy Remote",
+   "max": 1
+  },
+  {
+   "name": "The Necrobloxicon",
+   "max": 1
+  },
+  {
+   "name": "Gummylight",
+   "max": 1
   }
-]
+ ]
+}
