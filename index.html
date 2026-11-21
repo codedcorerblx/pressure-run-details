@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta id="meta-description" name="description" content="Welcome to PRD, Pressure Run Details (previously Pressure Modifiers Selector, PMS). Pick your run details and share them with others!">
+<meta id="og-title" property="og:title" content="Pressure Run Details">
+<meta id="og-description" property="og:description" content="Welcome to PRD, Pressure Run Details (previously Pressure Modifiers Selector, PMS). Pick your run details and share them with others!">
+<meta id="twitter-description" name="twitter:description" content="Welcome to PRD, Pressure Run Details (previously Pressure Modifiers Selector, PMS). Pick your run details and share them with others!">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pressure Run Details</title>
+<script>
+// Applies the saved theme before first paint (no flash). Best-effort.
+(function () {
+  try {
+    var theme = localStorage.getItem("prd_theme");
+    if (theme) document.documentElement.setAttribute("data-theme", theme);
+  } catch (e) { /* ignore */ }
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="scanlines" aria-hidden="true"></div>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand">
+      <span class="brand-mark">&#9670;</span>
+      <h1 class="brand-title">PRESSURE<span class="brand-title-accent">//</span>RUN DETAILS</h1>
+    </div>
+    <div class="masthead-actions">
+      <div id="masthead-settings-group" class="masthead-settings-group">
+        <label class="version-select-wrap"><span class="version-select-label">Version</span>
+          <select id="version-select" class="version-select" aria-label="Data version"></select></label>
+        <label class="version-select-wrap"><span class="version-select-label">Theme</span>
+          <select id="theme-select" class="version-select" aria-label="Color theme"></select></label>
+        <label class="version-select-wrap"><span class="version-select-label">Preview</span>
+          <select id="og-format-select" class="version-select" aria-label="Permalink preview format">
+            <option value="none">None</option><option value="short">Short</option><option value="long">Long</option>
+          </select></label>
+        <label class="reader-checkbox-wrap"><input type="checkbox" id="reader-checkbox">Read Only</label>
+      </div>
+      <span id="settings-anchor" hidden></span>
+      <button id="mobile-settings-btn" class="btn btn-ghost mobile-settings-btn" type="button"><span class="btn-icon">&#9881;</span> Settings</button>
+      <button id="permalink-btn" class="btn btn-ghost" type="button"><span class="btn-icon">&#128279;</span> Copy Permalink</button>
+      <button id="reset-btn" class="btn btn-ghost btn-danger" type="button"><span class="btn-icon">&#10005;</span> Reset</button>
+    </div>
+  </div>
+</header>
+<div id="reader-banner" class="reader-banner" hidden>
+  <span class="reader-banner-label">Read-only view</span>
+  <a id="reader-edit-link" class="btn btn-ghost btn-small" href="#">Open Editable Version</a>
+</div>
+<main class="layout">
+  <section class="panel prd-panel" aria-label="Run details">
+    <div class="panel-head">
+      <span class="panel-head-label">// Pressure Run Details</span>
+      <span class="panel-head-count" id="field-count">0 fields</span>
+    </div>
+    <div id="prd-grid" class="prd-grid"></div>
+    <div class="prd-section-head">// Dead-Drop</div>
+    <div id="drop-grid" class="prd-grid"></div>
+  </section>
+  <aside class="panel summary-panel" aria-label="Run summary">
+    <div class="panel-head">
+      <span class="panel-head-label">// Summary</span>
+      <span class="panel-head-count" id="selected-count"></span>
+    </div>
+    <div id="summary-list" class="summary-list"></div>
+    <div class="copy-list-row">
+      <div class="pill-toggle" id="copy-list-format" role="group" aria-label="Copy list format">
+        <button type="button" class="pill-btn active" data-format="short">Short</button>
+        <button type="button" class="pill-btn" data-format="long">Long</button>
+      </div>
+      <button id="copy-list-btn" class="btn btn-ghost" type="button"><span class="btn-icon">&#128203;</span> Copy List</button>
+    </div>
+  </aside>
+</main>
+<div id="app-modal-backdrop" class="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="app-modal-title">
+    <div class="modal-head"><span class="modal-title" id="app-modal-title">Title</span>
+      <button id="app-modal-close" class="modal-close" type="button" aria-label="Close">&#10005;</button></div>
+    <div class="modal-body" id="app-modal-body"></div>
+    <div class="modal-actions" id="app-modal-actions"></div>
+  </div>
+</div>
+<div id="toast" class="toast" hidden></div>
+<script src="js/app.js"></script>
+</body>
+</html>

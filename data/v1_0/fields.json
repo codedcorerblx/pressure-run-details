@@ -1,0 +1,84 @@
+[
+  {
+    "key": "pace",
+    "label": "Pace",
+    "options": [
+      "Hyperbullet",
+      "Bullet",
+      "Semi-Bullet",
+      "None (Slow)"
+    ]
+  },
+  {
+    "key": "spectate",
+    "label": "Spectator Allowed",
+    "options": [
+      "Yes",
+      "No",
+      "Request"
+    ]
+  },
+  {
+    "key": "limit",
+    "label": "Limit",
+    "options": [
+      "Limitless",
+      "Integer"
+    ],
+    "integer": "Integer"
+  },
+  {
+    "key": "specs",
+    "label": "Spectators",
+    "options": [
+      "Limitless",
+      "Integer"
+    ],
+    "integer": "Integer"
+  },
+  {
+    "key": "clip",
+    "label": "Clipping Allowed",
+    "options": [
+      "Yes",
+      "No",
+      "Request"
+    ]
+  },
+  {
+    "key": "followers",
+    "label": "Followers",
+    "options": [
+      "Anyone",
+      "Friends",
+      "Whitelist",
+      "Handpicked"
+    ]
+  },
+  {
+    "key": "frontfollowers",
+    "label": "Front Followers",
+    "options": [
+      "No",
+      "Request"
+    ]
+  },
+  {
+    "key": "run",
+    "label": "Run",
+    "options": [
+      "Modified",
+      "Hadal Blacksite"
+    ]
+  },
+  {
+    "key": "leaderage",
+    "label": "Leader Age Group",
+    "options": [
+      "13–15",
+      "16–17",
+      "18–20",
+      "21+"
+    ]
+  }
+]

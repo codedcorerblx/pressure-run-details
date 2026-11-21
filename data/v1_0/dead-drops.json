@@ -1,0 +1,82 @@
+[
+  {
+    "label": "Dead-Drop 1",
+    "selects": [
+      {
+        "label": "Item",
+        "options": [
+          "None",
+          "Example1",
+          "Example2",
+          "Example3"
+        ]
+      },
+      {
+        "label": "Status",
+        "options": [
+          "Recommended",
+          "Optional",
+          "Required"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Dead-Drop 2",
+    "selects": [
+      {
+        "label": "Item",
+        "options": [
+          "None",
+          "Example1",
+          "Example2",
+          "Example3"
+        ]
+      },
+      {
+        "label": "Status",
+        "options": [
+          "Recommended",
+          "Optional",
+          "Required"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Dead-Drop 3",
+    "selects": [
+      {
+        "label": "Item",
+        "options": [
+          "None",
+          "Example1",
+          "Example2",
+          "Example3"
+        ]
+      },
+      {
+        "label": "Status",
+        "options": [
+          "Recommended",
+          "Optional",
+          "Required"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Batteries",
+    "selects": [
+      {
+        "label": "Amount (0–3)",
+        "options": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ]
+  }
+]

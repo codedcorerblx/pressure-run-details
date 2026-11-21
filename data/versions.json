@@ -1,0 +1,6 @@
+{
+  "default": "v1_0",
+  "versions": [
+    { "slug": "v1_0", "label": "v1.0 | Initial Release" }
+  ]
+}
