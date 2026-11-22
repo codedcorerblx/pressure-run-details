@@ -11,7 +11,7 @@
       &n=<integer values, base36, dot separated>&reader=true
    The URL stays clean during normal use; params only appear after
    "Copy Permalink" or when opening a shared link, and any later
-   change clears them again. Data, CSS and JS are always fetched fresh (no-store / cache-busted).
+   change clears them again. CSS, JS and data use normal browser caching; only index.html is marked no-cache. Selections are cached in localStorage per version.
    ============================================================ */
 (function () {
   "use strict";
@@ -93,7 +93,7 @@
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
   function fetchJSON(p) {
-    return fetch(p, { cache: "no-store" }).then(function (res) {
+    return fetch(p).then(function (res) {
       if (!res.ok) throw new Error(p + " " + res.status);
       return res.json();
     });
